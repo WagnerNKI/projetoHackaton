@@ -1,10 +1,17 @@
 var five = require("johnny-five");
+const question = require('./questions');
 
 var board = new five.Board({
-    port: "COM3"
+    port: "COM3",
+    repl: false
 });
 
 var buttonPressed;
+var rightAnswer = question.rightAnswer;
+console.log(question.question);
+console.log("A) " + question.alternative1);
+console.log("B) " + question.alternative2);
+console.log("C) " + question.alternative3);
 
 board.on("ready", function () {
 
@@ -25,19 +32,31 @@ board.on("ready", function () {
     });
 
     button7.on("down", function () {
-        console.log("7");
-        buttonPressed = 7;
+        console.log(question.alternative1);
+        buttonPressed = question.alternative1;
+        isRightAnswer();
     });
 
     button6.on("down", function () {
-        console.log("6");
-        buttonPressed = 6;
+        console.log(question.alternative2);
+        buttonPressed = question.alternative2;
+        isRightAnswer();
     });
 
 
     button5.on("down", function () {
-        console.log("5");
-        buttonPressed = 5;
+        console.log(question.alternative3);
+        buttonPressed = question.alternative3;
+        isRightAnswer();
     });
 
 });
+
+function isRightAnswer() {
+    if (buttonPressed == rightAnswer) {
+        console.log("Resposta correta")
+    }
+    else {
+        console.log("Resposta errada")
+    }
+}
