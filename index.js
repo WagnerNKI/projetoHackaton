@@ -1,5 +1,5 @@
 var five = require("johnny-five");
-const question = require('./questions');
+const question = require('./questions.json');
 
 var board = new five.Board({
     port: "COM3",
@@ -14,6 +14,16 @@ console.log("B) " + question.alternative2);
 console.log("C) " + question.alternative3);
 
 board.on("ready", function () {
+
+    var lcd = new five.LCD({
+        pins: [7, 8, 9, 10, 11, 12],
+        backlight: 13,
+    });
+
+    lcd.cursor(0,0);
+    lcd.autoscroll().print("Bloop").print("asdfasdfadsfsaadfasdf");
+    lcd.cursor(1,0);
+    lcd.autoscroll().print("Bloop").print("asdfasdfadsfsaadfasdf");
 
     button7 = new five.Button({
         pin: 7,
