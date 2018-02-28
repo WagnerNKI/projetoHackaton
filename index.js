@@ -14,19 +14,22 @@ var prefixos = [
     "C"
 ]
 
+var date = new Date();
+
+var timeSinceshowed;
 var givenAnswer;
 var rightAnswer = question.rightAnswer;
 var questionShow = question.question;
-var alternativas  = _.chain(prefixos)
+var alternativas = _.chain(prefixos)
     .zip(question.alternativas)
-    .map(function(prefixoComAlternativa) {
+    .map(function (prefixoComAlternativa) {
         return prefixoComAlternativa.join(") ")
     }).value();
 
 console.log(questionShow);
-console.log(alternative1);
-console.log(alternative2);
-console.log(alternative3);
+console.log(alternativas[0]);
+console.log(alternativas[1]);
+console.log(alternativas[2]);
 console.log("Resposta:");
 
 board.on("ready", function () {
@@ -47,21 +50,21 @@ board.on("ready", function () {
     });
 
     button6.on("down", function () {
-        console.log(alternative1);
-        givenAnswer = alternative1;
+        console.log(alternativas[0]);
+        givenAnswer = alternativas[0];
         isRightAnswer();
     });
 
     button5.on("down", function () {
-        console.log(alternative2);
-        givenAnswer = alternative2;
+        console.log(alternativas[1]);
+        givenAnswer = alternativas[1];
         isRightAnswer();
     });
 
 
     button4.on("down", function () {
-        console.log(alternative3);
-        givenAnswer = alternative3;
+        console.log(alternativas[2]);
+        givenAnswer = alternativas[2];
         isRightAnswer();
     });
 
@@ -73,9 +76,13 @@ board.on("ready", function () {
 
     scroll.setup({
         lcd: lcd,
+        lastcharduration: 2000,
+        scrollingDuration: 800,
+        full: false
     });
 
     mostrarAlternativas();
+    timeSinceShowed = date.now;
 });
 
 function mostrarAlternativas() {
@@ -90,26 +97,29 @@ function isRightAnswer() {
     var answer;
     switch (givenAnswer) {
 
-        case alternative1:
-            answer = question.alternative1;
+        case alternativas[0]:
+            answer = question.alternativas[0];
             break;
 
-        case alternative2:
-            answer = question.alternative2;
+        case alternativas[1]:
+            answer = question.alternativas[1];
             break;
 
-        case alternative3:
-            answer = question.alternative3;
+        case alternativas[2]:
+            answer = question.alternativas[2];
             break;
     };
 
     if (answer == rightAnswer) {
         console.log("Resposta correta");
         scroll.line(1, "Resposta correta");
+        var now = date.now;
+        var tempo = (now - timeSinceShowed)/(1000);
+        console.log(tempo +" segundos");
     }
     else {
         console.log("Resposta errada");
         scroll.line(1, "Resposta errada");
-        setTimeout(mostrarAlternativas, 2000);
+        setTimeout(mostrarAlternativas, 3000);
     }
 }
