@@ -2,10 +2,11 @@ var five = require("johnny-five");
 const question = require('./questions');
 const scroll = require("lcd-scrolling");
 const _ = require("lodash");
+const request = require("request");
 var lcd;
 
 var board = new five.Board({
-    port: "COM3",
+    port: "COM4",
     repl: false,
 });
 var prefixos = [
@@ -14,23 +15,13 @@ var prefixos = [
     "C"
 ]
 
-var date = new Date();
+getQuestion();
 
-var timeSinceshowed;
 var givenAnswer;
-var rightAnswer = question.rightAnswer;
-var questionShow = question.question;
-var alternativas = _.chain(prefixos)
-    .zip(question.alternativas)
-    .map(function (prefixoComAlternativa) {
-        return prefixoComAlternativa.join(") ")
-    }).value();
+var rightAnswer;
+var questionShow;
+var alternativas;
 
-console.log(questionShow);
-console.log(alternativas[0]);
-console.log(alternativas[1]);
-console.log(alternativas[2]);
-console.log("Resposta:");
 
 board.on("ready", function () {
 
@@ -82,7 +73,6 @@ board.on("ready", function () {
     });
 
     mostrarAlternativas();
-    timeSinceShowed = date.now;
 });
 
 function mostrarAlternativas() {
@@ -113,13 +103,36 @@ function isRightAnswer() {
     if (answer == rightAnswer) {
         console.log("Resposta correta");
         scroll.line(1, "Resposta correta");
-        var now = date.now;
-        var tempo = (now - timeSinceShowed)/(1000);
-        console.log(tempo +" segundos");
+        
     }
     else {
         console.log("Resposta errada");
         scroll.line(1, "Resposta errada");
         setTimeout(mostrarAlternativas, 3000);
     }
+}
+
+function getQuestion() {
+    request("http://localhost:3000",
+        {
+            json: true
+        },
+        function (error, response, body) {
+            console.log('error:', error); // Print the error if one occurred
+            console.log('statusCode:', response && response.statusCode);
+
+            rightAnswer = body.rightAnswer;
+            questionShow = body.question;
+            alternativas = _.chain(prefixos)
+                .zip(body.alternativas)
+                .map(function (prefixoComAlternativa) {
+                    return prefixoComAlternativa.join(") ")
+                }).value();
+
+            console.log(questionShow);
+            console.log(alternativas[0]);
+            console.log(alternativas[1]);
+            console.log(alternativas[2]);
+            console.log("Resposta:");
+        });
 }

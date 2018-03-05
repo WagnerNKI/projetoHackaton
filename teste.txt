@@ -1,5 +1,0 @@
-question: "O que compoe a materia?"
-alternative1: "energia"
-alternative2: "atomos"
-alternative3: "magia"
-rightAnswer: "atomos"
