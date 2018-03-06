@@ -21,7 +21,6 @@ var givenAnswer;
 var rightAnswer;
 var questionShow;
 var alternativas;
-var id = { id: 4 };
 
 
 board.on("ready", function () {
@@ -101,12 +100,18 @@ function isRightAnswer() {
             break;
     };
 
+    const data = {
+        id: 4,
+        resp: answer
+    }
+
+    console.log(data)
     if (answer == rightAnswer) {
         console.log("Resposta correta");
         scroll.line(1, "Resposta correta");
         request.put("http://localhost:3000/iot", {
             json: true,
-            body: id
+            body: data
         });
     }
     else {
@@ -140,3 +145,4 @@ function getQuestion() {
             console.log("Resposta:");
         });
 }
+
