@@ -106,23 +106,15 @@ function isRightAnswer() {
     }
 
     console.log(data)
-    if (answer == rightAnswer) {
-        console.log("Resposta correta");
-        scroll.line(1, "Resposta correta");
-        request.put("http://localhost:3000/iot", {
-            json: true,
-            body: data
-        });
-    }
-    else {
-        console.log("Resposta errada");
-        scroll.line(1, "Resposta errada");
-        setTimeout(mostrarAlternativas, 3000);
-    }
+
+    request.put("http://localhost:8080/iot", {
+        json: true,
+        body: data
+    });
 }
 
 function getQuestion() {
-    request("http://localhost:3000/iot",
+    request("http://localhost:8080/iot",
         {
             json: true
         },
