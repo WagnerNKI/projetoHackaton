@@ -7,7 +7,9 @@
     "johnny-five": "^0.14.1",
     "lcd-scrolling": "^1.0.2",
     "lodash": "^4.17.5",
-    "request": "^2.83.0"
+    "parser-readline": "^1.0.2",
+    "request": "^2.83.0",
+    "serialport": "^6.1.1"
   },
   "devDependencies": {},
   "scripts": {

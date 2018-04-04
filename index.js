@@ -1,21 +1,28 @@
 var five = require("johnny-five");
-const question = require('./questions');
-const scroll = require("lcd-scrolling");
 const _ = require("lodash");
 const request = require("request");
 var lcd;
 
-var board = new five.Board({
-    port: "COM4",
-    repl: false,
+var SerialPort = require("serialport");
+var serialPort = new SerialPort("COM4", {
+    baudRate: 9600
 });
-var prefixos = [
-    "A",
-    "B",
-    "C"
-]
 
-getQuestion();
+const Readline = require('parser-readline');
+const parser = serialPort.pipe(new Readline({ delimiter: '\n' }));
+let perguntas = null;
+let perguntaAtual = 0;
+
+//open
+//request.get()
+
+parser.on('data', function (dadosLidos) {
+
+    console.log(dadosLidos);
+
+    // if (dadosLidos == "ready") {
+    pegarPergunta()
+});
 
 var givenAnswer;
 var rightAnswer;
@@ -23,63 +30,7 @@ var questionShow;
 var alternativas;
 
 
-board.on("ready", function () {
-
-    button6 = new five.Button({
-        pin: 6,
-        isPullup: true
-    });
-
-    button5 = new five.Button({
-        pin: 5,
-        isPullup: true
-    });
-
-    button4 = new five.Button({
-        pin: 4,
-        isPullup: true
-    });
-
-    button6.on("down", function () {
-        console.log(alternativas[0]);
-        givenAnswer = alternativas[0];
-        isRightAnswer();
-    });
-
-    button5.on("down", function () {
-        console.log(alternativas[1]);
-        givenAnswer = alternativas[1];
-        isRightAnswer();
-    });
-
-
-    button4.on("down", function () {
-        console.log(alternativas[2]);
-        givenAnswer = alternativas[2];
-        isRightAnswer();
-    });
-
-    lcd = new five.LCD({
-        pins: [7, 8, 9, 10, 11, 12],
-        rows: 2,
-        cols: 16
-    });
-
-    scroll.setup({
-        lcd: lcd,
-        lastcharduration: 2000,
-        scrollingDuration: 800,
-        full: false
-    });
-
-    mostrarAlternativas();
-});
-
-function mostrarAlternativas() {
-    scroll.line(0, questionShow);
-    var textoAlternativas = alternativas.join(" ");
-    scroll.line(1, textoAlternativas);
-}
+var d;
 
 
 function isRightAnswer() {
@@ -113,28 +64,68 @@ function isRightAnswer() {
     });
 }
 
-function getQuestion() {
-    request("http://localhost:8080/iot",
-        {
-            json: true
-        },
-        function (error, response, body) {
-            console.log('error:', error); // Print the error if one occurred
-            console.log('statusCode:', response && response.statusCode);
+function gravaPerguntaArduino (error, pergunta) {
+    console.log("enviando pergunta");
+    if (error) {
+        console.log(error)
+    };
+    console.log("pós erro");
+    serialPort.on("open", function () {
+        console.log('open');
+        serialPort.write(pergunta)
+    });
+    console.log("pergunta enviada");
+    // });
 
-            rightAnswer = body.rightAnswer;
-            questionShow = body.question;
-            alternativas = _.chain(prefixos)
-                .zip(body.alternativas)
-                .map(function (prefixoComAlternativa) {
-                    return prefixoComAlternativa.join(") ")
-                }).value();
-
-            console.log(questionShow);
-            console.log(alternativas[0]);
-            console.log(alternativas[1]);
-            console.log(alternativas[2]);
-            console.log("Resposta:");
-        });
 }
 
+function pegarPergunta() {
+    console.log("Pegando pergunta");
+    if (!perguntas) {
+        request.get("http://localhost:8080/iot",
+            {
+                json: true
+            },
+            function (error, response, body) {
+                if (error) {
+                    console.log('error:', error); // Print the error if one occurred
+                    console.log('statusCode:', response && response.statusCode);
+                    return gravaPerguntaArduino(error, null);
+                }
+                perguntas = body;
+                gravaPerguntaArduino(null, formatarPergunta(perguntas[perguntaAtual++]));
+                console.log("pergunta formatada");
+            });
+    } else {
+        if (perguntaAtual < perguntas.length) {
+            gravaPerguntaArduino(null, perguntas[perguntaAtual++]);
+        } else {
+            // cabô!
+        }
+    }
+}
+
+function formatarPergunta(pergunta) {
+    console.log("formando pergunta");
+    var quase = ["1"].concat(perguntas.pergunta[perguntaAtual]).join("");
+    var enviarArduino = [quase].concat(perguntas.alternativas).join(";");
+    console.log(enviarArduino);
+    return {
+        enviarArduino
+    }
+}
+// > [1,2,3].join(";")
+// '1;2;3'
+// > o = {alternativas:['uno', 'dos', 'tres']}
+// { alternativas: [ 'uno', 'dos', 'tres' ] }
+// > o.alternativas.join(";")
+// > o.pergunta="oi?"
+// 'oi?'
+// > o
+// { alternativas: [ 'uno', 'dos', 'tres' ], pergunta: 'oi?' }
+// > [o.pergunta].concat(o.alternativas)
+// [ 'oi?', 'uno', 'dos', 'tres' ]
+// > [o.pergunta].concat(o.alternativas).join(";")
+// 'oi?;uno;dos;tres'
+// > [o.pergunta].concat(o.alternativas).join(";") + "\n"
+// 'oi?;uno;dos;tres\n'
